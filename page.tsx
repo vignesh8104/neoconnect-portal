@@ -1,80 +1,69 @@
 "use client";
+import { useEffect, useState } from "react";
 
-import { useState } from "react";
+export default function Dashboard() {
+  const [cases, setCases] = useState([]);
 
-export default function Submit() {
-  const [category, setCategory] = useState("");
-  const [department, setDepartment] = useState("");
-  const [location, setLocation] = useState("");
-  const [description, setDescription] = useState("");
-
-  const submitCase = async () => {
-    const res = await fetch("http://localhost:5000/cases/submit", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        category,
-        department,
-        location,
-        description,
-        severity: "High",
-        anonymous: true,
-      }),
-    });
-
-    const data = await res.json();
-    alert("Complaint Submitted! Tracking ID: " + data.trackingId);
-  };
+  useEffect(() => {
+    fetch("http://localhost:5000/cases/all")
+      .then((res) => res.json())
+      .then((data) => setCases(data));
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+    <div className="min-h-screen bg-gray-100 p-10">
+      
+      <h1 className="text-3xl font-bold mb-6">Case Dashboard</h1>
 
-      <div className="bg-white shadow-xl rounded-xl p-10 w-[450px]">
+      <div className="bg-white shadow-lg rounded-xl p-6">
 
-        <h2 className="text-2xl font-bold mb-6">
-          Submit Complaint
-        </h2>
+        <table className="w-full border-collapse">
+          
+          <thead>
+            <tr className="bg-gray-200 text-left">
+              <th className="p-3">Tracking ID</th>
+              <th className="p-3">Department</th>
+              <th className="p-3">Category</th>
+              <th className="p-3">Status</th>
+              <th className="p-3">Created</th>
+            </tr>
+          </thead>
 
-        <div className="flex flex-col gap-4">
+          <tbody>
+            {cases.map((c) => (
+              <tr key={c._id} className="border-b hover:bg-gray-50">
+                
+                <td className="p-3 font-semibold">{c.trackingId}</td>
+                <td className="p-3">{c.department}</td>
+                <td className="p-3">{c.category}</td>
 
-          <input
-            className="border p-2 rounded"
-            placeholder="Category"
-            onChange={(e) => setCategory(e.target.value)}
-          />
+                <td className="p-3">
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm ${
+                      c.status === "New"
+                        ? "bg-blue-100 text-blue-600"
+                        : c.status === "Assigned"
+                        ? "bg-yellow-100 text-yellow-600"
+                        : c.status === "Resolved"
+                        ? "bg-green-100 text-green-600"
+                        : "bg-gray-100"
+                    }`}
+                  >
+                    {c.status}
+                  </span>
+                </td>
 
-          <input
-            className="border p-2 rounded"
-            placeholder="Department"
-            onChange={(e) => setDepartment(e.target.value)}
-          />
+                <td className="p-3">
+                  {new Date(c.createdAt).toLocaleDateString()}
+                </td>
 
-          <input
-            className="border p-2 rounded"
-            placeholder="Location"
-            onChange={(e) => setLocation(e.target.value)}
-          />
+              </tr>
+            ))}
+          </tbody>
 
-          <textarea
-            className="border p-2 rounded"
-            placeholder="Description"
-            rows={4}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-
-          <button
-            onClick={submitCase}
-            className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-          >
-            Submit Complaint
-          </button>
-
-        </div>
+        </table>
 
       </div>
-
     </div>
   );
 }
